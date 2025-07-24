@@ -1,98 +1,80 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🧑‍💻 API Gateway con NestJS
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Este proyecto implementa un **API Gateway** robusto y escalable utilizando **NestJS**, diseñado para unificar el acceso a diversos microservicios y APIs distribuidas. Su función principal es actuar como un único punto de entrada para los clientes, centralizando la gestión de peticiones, enrutándolas a los servicios adecuados y realizando la traducción de protocolos cuando sea necesario.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+El Gateway simplifica la interacción para los clientes externos al ofrecer una interfaz consistente, mientras que internamente se comunica eficientemente con los distintos componentes del sistema.
 
-## Description
+## 🚀 Tecnologías Utilizadas
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+* **NestJS:** Un framework progresivo de Node.js para construir aplicaciones del lado del servidor escalables y eficientes, siguiendo principios de arquitectura modular.
+* **TypeScript:** Lenguaje de programación que añade tipado estático a JavaScript, mejorando la robustez y mantenibilidad del código.
+* **`@nestjs/microservices`:** Módulo de NestJS esencial para la comunicación entre microservicios, soportando varios transportes como TCP, Redis y NATS.
+* **`socket.io`:** Librería popular para habilitar la comunicación en tiempo real bidireccional basada en eventos, utilizada para la gestión de WebSockets.
+* **`socket.io-client`:** Cliente de `socket.io` que permite al Gateway conectarse a otros servidores Socket.IO, facilitando el puenteo de la comunicación en tiempo real.
+* **`http-proxy-middleware`:** Middleware de proxy para NestJS (basado en Express), utilizado para reenviar peticiones HTTP a la API GraphQL.
+* **`Docker`:** Plataforma de contenedores utilizada para el despliegue rápido y consistente de los servidores de mensajería (Redis y NATS).
 
-## Project setup
+## 📡 Detalles del API Gateway
 
-```bash
-$ npm install
-```
+* **Rol:** Unificador de puntos de acceso, enrutador de tráfico, y traductor de protocolos. Provee una interfaz externa consistente para múltiples servicios internos.
+* **Puerto de Escucha del Gateway:** `3000` (Este es el puerto principal para HTTP y WebSockets).
+* **Métodos de Comunicación Soportados:**
+    * **HTTP:** Para la exposición de endpoints RESTful y el proxying de la API GraphQL.
+    * **WebSockets:** Para la gestión de la comunicación en tiempo real con clientes de chat.
+    * **TCP, Redis, NATS:** Para la comunicación interna con el microservicio de tiempo, permitiendo flexibilidad en la infraestructura de mensajería.
+* **Servicios Integrados:**
+    * **Microservicio de Tiempo (`time-microservice`):** Provee la hora actual mediante RPC.
+    * **Aplicación de Chat (`realtime-chat`):** Permite la comunicación en tiempo real entre usuarios.
+    * **API GraphQL (`mi-api-graphql-libros`):** Ofrece operaciones de consulta y mutación para la gestión de datos de libros.
 
-## Compile and run the project
+## ⚙️ Estructura de Componentes Clave
 
-```bash
-# development
-$ npm run start
+El proyecto `api-gateway` se organiza en los siguientes componentes principales:
 
-# watch mode
-$ npm run start:dev
+* **`src/main.ts`**: Archivo de entrada de la aplicación NestJS. Configura el servidor HTTP y el proxy para GraphQL, además de inicializar la aplicación y sus módulos.
+* **`src/app.module.ts`**: Módulo raíz que define la estructura principal de la aplicación, importando otros módulos y registrando controladores y proveedores.
+* **`src/app.controller.ts`**: Contiene la lógica para las rutas HTTP expuestas directamente por el Gateway, como el endpoint `/time` para el microservicio de tiempo.
+* **`src/time-service-client/time-service-client.service.ts`**: Un servicio cliente que abstrae la comunicación con el `time-microservice`. Se encarga de conectar y enviar mensajes al microservicio de tiempo, adaptándose dinámicamente al transporte configurado (TCP, Redis, NATS).
+* **`src/chat-relay/chat-relay.module.ts`**: Módulo específico para encapsular la lógica del puente WebSocket del chat.
+* **`src/chat-relay/chat-relay.gateway.ts`**: Implementa un `WebSocketGateway` para el Gateway. Actúa como un servidor WebSocket para los clientes frontend y, simultáneamente, como un cliente WebSocket (`socket.io-client`) que se conecta a la aplicación de chat original. Su función es reenviar mensajes bidireccionalmente entre los clientes del Gateway y el servidor de chat principal.
 
-# production mode
-$ npm run start:prod
-```
+## 📦 Archivos Clave del Proyecto
 
-## Run tests
+Aquí se presentan los contenidos de los archivos más relevantes para la configuración y operación del API Gateway:
 
-```bash
-# unit tests
-$ npm run test
+### `src/main.ts` (API Gateway)
 
-# e2e tests
-$ npm run test:e2e
+```typescript
+// src/main.ts del proyecto api-gateway
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { ConfigService } from '@nestjs/config';
+import { Logger, HttpStatus } from '@nestjs/common';
+import * as express from 'express'; // Importa express para los tipos de Request y Response
+import { createProxyMiddleware } from 'http-proxy-middleware'; // Importa http-proxy-middleware
 
-# test coverage
-$ npm run test:cov
-```
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
+  const logger = new Logger('API Gateway');
 
-## Deployment
+  const gatewayPort = configService.get<number>('GATEWAY_PORT') || 3000;
+  const graphqlApiUrl = configService.get<string>('GRAPHQL_API_URL') || 'http://localhost:4000';
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+  app.enableCors();
+  app.use(express.json()); // Asegura que el cuerpo de las peticiones JSON sea parseado
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+  // --- Proxy para la API GraphQL con http-proxy-middleware ---
+  const graphqlProxy = createProxyMiddleware({
+    target: graphqlApiUrl,
+    changeOrigin: true, // Importante para el proxy
+  });
+  app.use('/graphql', graphqlProxy);
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+  // Inicia el servidor HTTP de NestJS (y el servidor WebSocket del Gateway)
+  await app.listen(gatewayPort);
+  console.log(`API Gateway escuchando peticiones HTTP y WebSockets en el puerto ${gatewayPort}`);
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+  // --- La lógica del puente WebSocket está en ChatRelayGateway ---
+}
+bootstrap();
